@@ -7,6 +7,7 @@ import rx.functions.Action0;
 import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
+import static debug.Loggers.println;
 import static org.junit.Assert.assertEquals;
 
 public class SideEffectTest {
@@ -20,7 +21,7 @@ public class SideEffectTest {
 
         final Observable<Integer> source = Observable
                 .range(1, 10)
-                .doOnNext(print("from source: "))
+                .doOnNext(println("from source: "))
                 .doOnNext(countAction);
 
         source.doOnCompleted(assertActionFactory.assertExpected(10)).subscribe();
@@ -38,7 +39,7 @@ public class SideEffectTest {
 
         final Observable<Integer> source = Observable
                 .range(1, 10)
-                .doOnNext(print("from source: "))
+                .doOnNext(println("from source: "))
                 .doOnNext(countAction)
                 .subscribeOn(Schedulers.io());
 
@@ -58,7 +59,7 @@ public class SideEffectTest {
 
         final Observable<Integer> source = Observable
                 .range(1, 10)
-                .doOnNext(print("from source: "))
+                .doOnNext(println("from source: "))
                 .doOnNext(countAction)
                 .share()
                 .subscribeOn(Schedulers.io());
@@ -68,15 +69,6 @@ public class SideEffectTest {
         source.doOnCompleted(assertActionFactory.assertExpected(10)).subscribe();
 
         source.toBlocking().last();
-    }
-
-    private Action1<Integer> print(final String prefix) {
-        return new Action1<Integer>() {
-            @Override
-            public void call(Integer i) {
-                System.out.println(Thread.currentThread().getName() + "; " + prefix + i);
-            }
-        };
     }
 
     private static class CountAction implements Action1<Integer> {
