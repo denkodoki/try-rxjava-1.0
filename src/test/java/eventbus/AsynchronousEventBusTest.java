@@ -1,11 +1,10 @@
 package eventbus;
 
-import debug.Debugger;
 import org.junit.Test;
-import rx.Observable;
-import rx.Subscriber;
-import rx.Subscription;
+import rx.functions.Action1;
 import rx.functions.Func1;
+
+import static debug.Loggers.*;
 
 public class AsynchronousEventBusTest {
 
@@ -13,30 +12,30 @@ public class AsynchronousEventBusTest {
     public void singleRecursivePublish() throws InterruptedException {
         System.out.println("singleRecursivePublish");
         AsynchronousEventBus<Integer> eventBus = new AsynchronousEventBus<>();
-        Subscription s1 = subscribe(eventBus, oddFilter, "#1");
+        republishTenTimes(eventBus, oddFilter, "odd: ");
         eventBus.publish(1);
-        Thread.sleep(100);
-        s1.unsubscribe();
+        Thread.sleep(500);
     }
 
     @Test
     public void doubleRecursivePublish() throws InterruptedException {
         System.out.println("doubleRecursivePublish");
         AsynchronousEventBus<Integer> eventBus = new AsynchronousEventBus<>();
-        Subscription s1 = subscribe(eventBus, oddFilter, "#1");
-        Subscription s2 = subscribe(eventBus, evenFilter, "#2");
+        republishTenTimes(eventBus, oddFilter, " odd:  ");
+        republishTenTimes(eventBus, evenFilter, "even: ");
         eventBus.publish(1);
         eventBus.publish(2);
-        Thread.sleep(100);
-        s1.unsubscribe();
-        s2.unsubscribe();
+        Thread.sleep(500);
     }
 
-    private Subscription subscribe(EventBus<Integer> eventBus, Func1<Integer, Boolean> filter, String id) {
-        return eventBus.getEventStream()
+    private void republishTenTimes(EventBus<Integer> eventBus, Func1<Integer, Boolean> filter, String id) {
+        eventBus.getEventStream()
                 .filter(filter)
-                .lift(new RecursivePublisher(eventBus))
-                .lift(new Debugger<Integer>(id))
+                .take(10)
+                .doOnNext(println(id))
+                .doOnNext(publishOn(eventBus))
+                .doOnCompleted(println0(id + "completed"))
+                .doOnError(printlnError(id))
                 .subscribe();
     }
 
@@ -54,45 +53,12 @@ public class AsynchronousEventBusTest {
         }
     };
 
-    private static class RecursivePublisher implements Observable.Operator<Integer,Integer> {
-
-        private final EventBus<Integer> eventBus;
-
-        private RecursivePublisher(EventBus<Integer> eventBus) {
-            this.eventBus = eventBus;
-        }
-
-
-        @Override
-        public Subscriber<? super Integer> call(final Subscriber<? super Integer> subscriber) {
-            return new Subscriber<Integer>() {
-
-                @Override
-                public void onCompleted() {
-                    if (!subscriber.isUnsubscribed()) {
-                        subscriber.onCompleted();
-                    }
-                }
-
-                @Override
-                public void onError(Throwable throwable) {
-                    if (!subscriber.isUnsubscribed()) {
-                        subscriber.onError(throwable);
-                    }
-                }
-
-                @Override
-                public void onNext(final Integer t) {
-                    if (!subscriber.isUnsubscribed()) {
-                        if (t < 10) {
-                            eventBus.publish(t + 2);
-                            subscriber.onNext(t);
-                        } else {
-                            subscriber.onCompleted();
-                        }
-                    }
-                }
-            };
-        }
+    private Action1<Integer> publishOn(final EventBus<Integer> eventBus) {
+        return new Action1<Integer>() {
+            @Override
+            public void call(Integer item) {
+                eventBus.publish(item + 2);
+            }
+        };
     }
 }

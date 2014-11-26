@@ -1,11 +1,11 @@
-package core;
+package tryrx;
 
 import org.junit.Test;
 import rx.Observable;
 import rx.Subscriber;
 
 import static debug.Loggers.println;
-import static debug.Loggers.printlnOnCompleted;
+import static debug.Loggers.println0;
 
 public class UnSubscribeTest {
 
@@ -20,7 +20,7 @@ public class UnSubscribeTest {
                 subscriber.onCompleted();
             }
         });
-        infinite.doOnNext(println("i= ")).doOnCompleted(printlnOnCompleted("infinite")).take(10).subscribe();
+        infinite.doOnNext(println("i= ")).doOnCompleted(println0("infinite")).take(10).subscribe();
     }
 
 }

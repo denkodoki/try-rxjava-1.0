@@ -7,10 +7,10 @@ import rx.subjects.PublishSubject;
 public class AsynchronousEventBus<T> implements EventBus<T> {
 
     private PublishSubject<T> eventSubject = PublishSubject.create();
+
     private Observable<T> eventStream = eventSubject
             .serialize()
-            .share()
-            .observeOn(Schedulers.io());
+            .observeOn(Schedulers.computation());
 
     @Override
     public Observable<T> getEventStream() {

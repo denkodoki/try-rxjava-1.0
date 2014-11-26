@@ -1,4 +1,4 @@
-package core;
+package tryrx;
 
 import org.junit.Test;
 import rx.Observable;

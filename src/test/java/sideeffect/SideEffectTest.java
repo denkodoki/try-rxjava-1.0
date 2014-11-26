@@ -1,5 +1,6 @@
 package sideeffect;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import rx.Observable;
 import rx.functions.Action0;
@@ -12,6 +13,8 @@ public class SideEffectTest {
 
     @Test
     public void serialDoOnNextTest() {
+        System.out.println("serialDoOnNextTest");
+
         final CountAction countAction = new CountAction();
         final AssertActionFactory assertActionFactory = new AssertActionFactory(countAction);
 
@@ -26,7 +29,10 @@ public class SideEffectTest {
     }
 
     @Test
+    @Ignore
     public void multiThreadedDoOnNextTest() throws InterruptedException {
+        System.out.println("multiThreadedDoOnNextTest");
+
         final CountAction countAction = new CountAction();
         final AssertActionFactory assertActionFactory = new AssertActionFactory(countAction);
 
@@ -36,15 +42,17 @@ public class SideEffectTest {
                 .doOnNext(countAction)
                 .subscribeOn(Schedulers.io());
 
-        source.doOnCompleted(assertActionFactory.assertExpected(20)).subscribe();
+        source.doOnCompleted(assertActionFactory.assertExpected(10)).subscribe();
 
         source.doOnCompleted(assertActionFactory.assertExpected(20)).subscribe();
 
         source.toBlocking().last();
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void multiThreadedSharedDoOnNextTest() throws InterruptedException {
+        System.out.println("multiThreadedSharedDoOnNextTest");
+
         final CountAction countAction = new CountAction();
         final AssertActionFactory assertActionFactory = new AssertActionFactory(countAction);
 
@@ -89,7 +97,7 @@ public class SideEffectTest {
                 @Override
                 public void call() {
                     assertEquals(expected, countAction.getCount());
-                    System.out.println("assert done");
+                    System.out.println("assert " + expected + " done");
                 }
             };
         }
