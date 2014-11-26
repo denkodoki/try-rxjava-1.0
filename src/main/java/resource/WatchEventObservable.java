@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 
 public enum WatchEventObservable {
     ;
+
     public static Observable<WatchEvent> from(
             final WatchService watchService,
             final Path dir,
@@ -39,10 +40,10 @@ public enum WatchEventObservable {
                 return Observable.interval(pollingInterval, pollingTimeUnit).lift(new WatchEventPollingOperator(watchKey));
             }
         };
-                final Action1<WatchKey> disposeAction = new Action1<WatchKey>() {
+        final Action1<WatchKey> disposeAction = new Action1<WatchKey>() {
 
-                    @Override
-                    public void call(WatchKey watchKey) {
+            @Override
+            public void call(WatchKey watchKey) {
                 if (watchKey.isValid()) {
                     watchKey.cancel();
                 }
@@ -65,21 +66,21 @@ public enum WatchEventObservable {
             return new Subscriber<Long>() {
                 @Override
                 public void onCompleted() {
-                    if(!subscriber.isUnsubscribed()) {
+                    if (!subscriber.isUnsubscribed()) {
                         subscriber.onCompleted();
                     }
                 }
 
                 @Override
                 public void onError(Throwable throwable) {
-                    if(!subscriber.isUnsubscribed()) {
+                    if (!subscriber.isUnsubscribed()) {
                         subscriber.onError(throwable);
                     }
                 }
 
                 @Override
                 public void onNext(Long aLong) {
-                    for(WatchEvent event: watchKey.pollEvents()) {
+                    for (WatchEvent event : watchKey.pollEvents()) {
                         if (!subscriber.isUnsubscribed()) {
                             subscriber.onNext(event);
                         }

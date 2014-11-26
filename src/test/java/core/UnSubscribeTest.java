@@ -3,19 +3,11 @@ package core;
 import org.junit.Test;
 import rx.Observable;
 import rx.Subscriber;
-import rx.functions.Action1;
+
+import static debug.Loggers.println;
+import static debug.Loggers.printlnOnCompleted;
 
 public class UnSubscribeTest {
-
-    private Action1<Long> print(final String prefix) {
-        return new Action1<Long>() {
-            @Override
-            public void call(Long i) {
-                System.out.println(Thread.currentThread().getName() + "; " + prefix + i);
-            }
-        };
-    }
-
 
     @Test
     public void unSubscribeTest() {
@@ -28,7 +20,7 @@ public class UnSubscribeTest {
                 subscriber.onCompleted();
             }
         });
-        infinite.doOnNext(print("i= ")).take(10).subscribe();
+        infinite.doOnNext(println("i= ")).doOnCompleted(printlnOnCompleted("infinite")).take(10).subscribe();
     }
 
 }
