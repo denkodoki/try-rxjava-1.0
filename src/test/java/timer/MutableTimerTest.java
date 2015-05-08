@@ -1,6 +1,8 @@
 package timer;
 
-import debug.Loggers;
+import debug.LogError;
+import debug.LogEvent;
+import debug.LogValue;
 import org.junit.Test;
 import rx.Observable;
 import rx.subjects.PublishSubject;
@@ -9,18 +11,31 @@ import java.util.concurrent.TimeUnit;
 
 public class MutableTimerTest {
 
-    private static final long MAX_WAIT_MILLS = 5_000L;
-
     @Test
     public void test() {
         PublishSubject<Observable<Long>> timerSubject = PublishSubject.create();
-        final Observable<Long> mutableTimer = timerSubject.asObservable().compose(new MutableTimer());
-        mutableTimer.timeInterval().doOnNext(Loggers.println()).subscribe();
+        final Observable<Long> mutableTimer = Observable
+                .switchOnNext(timerSubject)
+                .doOnCompleted(new LogEvent("Mutable timer completed"))
+                .doOnError(new LogError("Mutable timer error: "))
+                .share();
 
-        final Observable<Long> timer1 = Observable.timer(10L, 100L, TimeUnit.MILLISECONDS);
+        mutableTimer.subscribe();
+
+        final Observable<Long> timer1 = Observable
+                .timer(10, 10, TimeUnit.MILLISECONDS)
+                .doOnSubscribe(new LogEvent("timer1 is subscribed"));
+
         timerSubject.onNext(timer1);
 
-        mutableTimer.take(10).timeout(MAX_WAIT_MILLS, TimeUnit.MILLISECONDS).toBlocking().last();
+        mutableTimer
+                .take(10)
+                .timeInterval()
+                .doOnNext(new LogValue<>())
+                .toList()
+                .timeout(200, TimeUnit.MILLISECONDS)
+                .toBlocking()
+                .last();
     }
 
 }
