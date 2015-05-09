@@ -8,15 +8,6 @@ public abstract class Option<T> {
     protected Option() {
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> Option<T> option(T t) {
-        return (t == null) ? new None<>() : new Some(t);
-    }
-
-    public static <T> Option<T> none() {
-        return new None<>();
-    }
-
     public abstract <R> Option<R> map(Func1<? super T, ? extends R> f);
 
     public abstract <R> Option<R> flatMap(Func1<? super T, ? extends Option<R>> f);
@@ -24,6 +15,18 @@ public abstract class Option<T> {
     public abstract Option<T> orElse(Func0<? extends Option<T>> f);
 
     public abstract T getOrElse(T t);
+
+    private static final None NONE = new None();
+
+    @SuppressWarnings("unchecked")
+    public static <T> Option<T> option(T t) {
+        return (t == null) ? NONE : new Some(t);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> Option<T> none() {
+        return NONE;
+    }
 
     private static class None<T> extends Option<T> {
 
